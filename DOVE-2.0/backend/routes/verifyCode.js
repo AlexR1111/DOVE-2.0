@@ -32,7 +32,7 @@ router.post('/verify-code', async (req, res) => {
 
     res.json({
       valid: isValid,
-      reason: isValid ? 'Code gültig' : 'Code ungültig oder abgelaufen',
+      reason: isValid ? 'Code gültig' : 'Der Code war leider falsch – versuch’s nochmal',
       expiresIn: isValid ? expiresIn : 0
     });
   } catch (err) {

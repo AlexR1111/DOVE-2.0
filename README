@@ -1,0 +1,79 @@
+# 🕊️ DOVE – Dein digitaler Schlüsselbund
+
+DOVE ist ein modularer Authentifizierungsdienst mit SMS-Verifizierung, gebaut mit React, Express und AWS DynamoDB. Ziel ist eine charmante, sichere und skalierbare Lösung für die Benutzerverifizierung – ideal für Cloud-native Anwendungen und IHK-Projekte.
+
+---
+
+## 🚀 Features
+
+- 📱 Telefonnummern-Verifizierung via SMS
+- ⏳ Countdown für Code-Gültigkeit (TTL)
+- 🔁 Automatischer Ablauf & erneute Anforderung
+- 🧼 UX mit klarer Statusanzeige und Branding
+- 🧠 Modularer Aufbau für einfache Erweiterung
+
+---
+
+## 🧱 Architektur
+
+| Layer        | Technologie             | Beschreibung                                  |
+|--------------|-------------------------|-----------------------------------------------|
+| Frontend     | React + Vite            | Eingabeformular, Countdown, UX-Flow           |
+| Backend      | Express.js              | API-Endpunkte für Code-Versand & Prüfung      |
+| Datenbank    | AWS DynamoDB            | Speicherung von Code + Ablaufzeit (TTL)       |
+| SMS-Service  | (Mock oder AWS SNS)     | Versand des Codes (aktuell lokal simuliert)   |
+
+---
+
+## 🛠️ Setup & Start
+
+### 1. 📦 Projekt klonen
+
+```bash
+git clone https://github.com/dein-user/dove-auth.git
+cd dove-auth
+
+## Backend starten
+
+cd backend
+npm install
+cp .env.example .env  # Trage deine AWS-Zugangsdaten ein
+npm run dev
+
+
+## Frontend starten
+
+cd frontend
+npm install
+npm run dev
+
+
+## .env beispiel im backend
+
+AWS_REGION=eu-central-1
+AWS_ACCESS_KEY_ID=DEINE_KEY
+AWS_SECRET_ACCESS_KEY=DEIN_SECRET
+DYNAMODB_TABLE=DOVE-Codes
+
+
+## API- ENDPUNKTE
+
+POST /send-code
+
+{ "phone": "+491234567890" }
+→ { "success": true, "code": "953023", "expiresIn": 60 }
+
+POST /verify-code
+{ "phone": "+491234567890", "code": "953023" }
+→ { "valid": true, "reason": "Code korrekt", "expiresIn": 30 }
+
+
+
+
+Countdown startet direkt nach Code-Versand (expiresIn)
+
+Ablauf setzt step: 'input' automatisch zurück
+
+Button „🔁 Neuen Code anfordern“ sendet direkt neuen Code
+
+Modularer Aufbau → leicht erweiterbar für E-Mail, OAuth etc.

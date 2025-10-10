@@ -1,0 +1,45 @@
+service: dove-auth
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-central-1
+  stage: prod
+  deploymentBucket:
+    name: dove-serverless-deploy
+  environment:
+    DYNAMODB_TABLE: VerificationCodes
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:5173
+      allowedHeaders:
+        - Content-Type
+      allowedMethods:
+        - POST
+        - OPTIONS
+
+functions:
+  api:
+    handler: handler.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+
+resources:
+  Resources:
+    VerificationCodes:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: VerificationCodes
+        AttributeDefinitions:
+          - AttributeName: phone
+            AttributeType: S
+        KeySchema:
+          - AttributeName: phone
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+        BillingMode: PAY_PER_REQUEST

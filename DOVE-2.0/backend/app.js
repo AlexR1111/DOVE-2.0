@@ -5,30 +5,39 @@ import verifyCode from './routes/verifyCode.js';
 
 const app = express();
 
-//Corse test
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.status(200).end();
+});
+
 
 app.use(cors({
   origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'],
-  allowedHeaders:['Content-Type'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
   credentials: true
 }));
+
+
 app.use(express.json());
-
-app.use('/', sendCode);
-app.use('/', verifyCode);
-
-//logging
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.url}`);
   next();
 });
 
+app.use('/', sendCode);
+app.use('/', verifyCode);
+
 app.get('/test', (req, res) => {
-  res.send('<h1>✅ Backend funktioniert</h1>');
+  res.send('<h1>✅ Lambda-Backend funktioniert</h1>');
 });
 
-app.listen(3001, () => {
-  console.log('DOVE Backend läuft auf Port 3001');
+app.use((err, req, res, next) => {
+  console.error('❌ Express-Fehler:', err);
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
+
+export default app;
