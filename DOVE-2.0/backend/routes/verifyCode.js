@@ -1,6 +1,6 @@
 import express from 'express';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DeleteCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -8,16 +8,16 @@ const router = express.Router();
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 
 router.post('/verify-code', async (req, res) => {
-  const { phone, code } = req.body;
+  const { target, code } = req.body;
 
-  if (!phone || !code) {
-    return res.status(400).json({ error: 'Telefonnummer und Code erforderlich' });
+  if (!target || !code) {
+    return res.status(400).json({ error: 'Target und Code erforderlich' });
   }
 
   try {
     const result = await client.send(new GetCommand({
       TableName: process.env.DYNAMODB_TABLE,
-      Key: { phone },
+      Key: { target },
     }));
 
     const item = result.Item;
@@ -29,6 +29,13 @@ router.post('/verify-code', async (req, res) => {
 
     const isValid = item.code === code && item.expiresAt > now;
     const expiresIn = item.expiresAt - now;
+
+    if (isValid) {
+      await client.send(new DeleteCommand({
+        TableName: process.env.DYNAMODB_TABLE,
+        Key: { target }
+      }));
+    }
 
     res.json({
       valid: isValid,

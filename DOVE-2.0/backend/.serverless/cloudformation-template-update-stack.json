@@ -65,6 +65,15 @@
                       "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/dove-auth-prod*:*:*"
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:DeletItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:eu-central-1:704428061275:table/VerificationCodes"
                 }
               ]
             }
@@ -91,7 +100,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "dove-serverless-deploy",
-          "S3Key": "serverless/dove-auth/prod/1760108570185-2025-10-10T15:02:50.185Z/dove-auth.zip"
+          "S3Key": "serverless/dove-auth/prod/1760341554400-2025-10-13T07:45:54.400Z/dove-auth.zip"
         },
         "Handler": "handler.handler",
         "Runtime": "nodejs18.x",
@@ -114,14 +123,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersiondOKIk0jfxq0u8ncI73qsSuv1bWYM6nvNi7JpTHIcY": {
+    "ApiLambdaVersionKLsDWTIwOJViiByENn0hyb2FdegUvqIp1ZebMKqWm4": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "7ILcYWmLMLJDJBvyrOK45O9XGrDJ2iDWClSkPv9Y2vc="
+        "CodeSha256": "MEXg/iEjGD/5LyRRAjjO+wa83iHhODtHEKt4PkZ7Zsc="
       }
     },
     "HttpApi": {
@@ -265,7 +274,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersiondOKIk0jfxq0u8ncI73qsSuv1bWYM6nvNi7JpTHIcY"
+        "Ref": "ApiLambdaVersionKLsDWTIwOJViiByENn0hyb2FdegUvqIp1ZebMKqWm4"
       },
       "Export": {
         "Name": "sls-dove-auth-prod-ApiLambdaFunctionQualifiedArn"

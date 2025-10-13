@@ -9,6 +9,16 @@ provider:
     name: dove-serverless-deploy
   environment:
     DYNAMODB_TABLE: VerificationCodes
+    
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeletItem
+      Resource:
+        - arn:aws:dynamodb:eu-central-1:704428061275:table/VerificationCodes
+
   httpApi:
     cors:
       allowedOrigins:
