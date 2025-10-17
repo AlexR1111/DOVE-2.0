@@ -11,7 +11,7 @@
       "stage": "prod",
       "deploymentBucket": "dove-serverless-deploy",
       "environment": {
-        "DYNAMODB_TABLE": "VerificationCodes"
+        "DYNAMODB_TABLE": "dove-auth-codes"
       },
       "iamRoleStatements": [
         {
@@ -19,9 +19,9 @@
           "Action": [
             "dynamodb:PutItem",
             "dynamodb:GetItem",
-            "dynamodb:DeletItem"
+            "dynamodb:DeleteItem"
           ],
-          "Resource": "arn:aws:dynamodb:eu-central-1:704428061275:table/VerificationCodes"
+          "Resource": "arn:aws:dynamodb:eu-central-1:704428061275:table/dove-auth-codes"
         }
       ],
       "httpApi": {
@@ -34,7 +34,8 @@
           ],
           "allowedMethods": [
             "POST",
-            "OPTIONS"
+            "OPTIONS",
+            "GET"
           ]
         }
       },
@@ -138,7 +139,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "dove-serverless-deploy",
-                "S3Key": "serverless/dove-auth/prod/1760341554400-2025-10-13T07:45:54.400Z/dove-auth.zip"
+                "S3Key": "serverless/dove-auth/prod/1760693565773-2025-10-17T09:32:45.773Z/dove-auth.zip"
               },
               "Handler": "handler.handler",
               "Runtime": "nodejs18.x",
@@ -147,7 +148,7 @@
               "Timeout": 6,
               "Environment": {
                 "Variables": {
-                  "DYNAMODB_TABLE": "VerificationCodes"
+                  "DYNAMODB_TABLE": "dove-auth-codes"
                 }
               },
               "Role": {
@@ -161,14 +162,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionKLsDWTIwOJViiByENn0hyb2FdegUvqIp1ZebMKqWm4": {
+          "ApiLambdaVersionkjESfox1Cflh2jfnq88yqCq0O78fnC9lpN47TRtkTK8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "MEXg/iEjGD/5LyRRAjjO+wa83iHhODtHEKt4PkZ7Zsc="
+              "CodeSha256": "c8bEt6HmsLkgJLuYj/7CFAxmPaEtmLWwlb6GJXt4vYY="
             }
           },
           "HttpApi": {
@@ -182,7 +183,8 @@
                 ],
                 "AllowMethods": [
                   "POST",
-                  "OPTIONS"
+                  "OPTIONS",
+                  "GET"
                 ],
                 "AllowOrigins": [
                   "http://localhost:5173"
@@ -274,29 +276,6 @@
               }
             },
             "DependsOn": "HttpApiIntegrationApi"
-          },
-          "VerificationCodes": {
-            "Type": "AWS::DynamoDB::Table",
-            "Properties": {
-              "TableName": "VerificationCodes",
-              "AttributeDefinitions": [
-                {
-                  "AttributeName": "phone",
-                  "AttributeType": "S"
-                }
-              ],
-              "KeySchema": [
-                {
-                  "AttributeName": "phone",
-                  "KeyType": "HASH"
-                }
-              ],
-              "TimeToLiveSpecification": {
-                "AttributeName": "expiresAt",
-                "Enabled": true
-              },
-              "BillingMode": "PAY_PER_REQUEST"
-            }
           }
         },
         "Outputs": {
@@ -309,7 +288,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionKLsDWTIwOJViiByENn0hyb2FdegUvqIp1ZebMKqWm4"
+              "Ref": "ApiLambdaVersionkjESfox1Cflh2jfnq88yqCq0O78fnC9lpN47TRtkTK8"
             },
             "Export": {
               "Name": "sls-dove-auth-prod-ApiLambdaFunctionQualifiedArn"
@@ -373,36 +352,8 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionKLsDWTIwOJViiByENn0hyb2FdegUvqIp1ZebMKqWm4"
+        "versionLogicalId": "ApiLambdaVersionkjESfox1Cflh2jfnq88yqCq0O78fnC9lpN47TRtkTK8"
       }
-    },
-    "resources": {
-      "Resources": {
-        "VerificationCodes": {
-          "Type": "AWS::DynamoDB::Table",
-          "Properties": {
-            "TableName": "VerificationCodes",
-            "AttributeDefinitions": [
-              {
-                "AttributeName": "phone",
-                "AttributeType": "S"
-              }
-            ],
-            "KeySchema": [
-              {
-                "AttributeName": "phone",
-                "KeyType": "HASH"
-              }
-            ],
-            "TimeToLiveSpecification": {
-              "AttributeName": "expiresAt",
-              "Enabled": true
-            },
-            "BillingMode": "PAY_PER_REQUEST"
-          }
-        }
-      },
-      "Outputs": {}
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless",
@@ -413,9 +364,6 @@
       },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
-      },
-      "resources": {
-        "$ref": "$[\"service\"][\"resources\"]"
       }
     },
     "appId": null,
@@ -424,7 +372,7 @@
     "artifact": "C:\\DOVE\\DOVE-2.0\\backend\\.serverless\\dove-auth.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/dove-auth/prod/1760341554400-2025-10-13T07:45:54.400Z",
+    "artifactDirectoryName": "serverless/dove-auth/prod/1760693565773-2025-10-17T09:32:45.773Z",
     "artifact": "dove-auth.zip"
   }
 }

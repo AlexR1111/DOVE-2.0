@@ -8,19 +8,19 @@ provider:
   deploymentBucket:
     name: dove-serverless-deploy
   environment:
-    DYNAMODB_TABLE: VerificationCodes
+    DYNAMODB_TABLE: dove-auth-codes
     
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:PutItem
         - dynamodb:GetItem
-        - dynamodb:DeletItem
+        - dynamodb:DeleteItem
       Resource:
-        - arn:aws:dynamodb:eu-central-1:704428061275:table/VerificationCodes
+        - arn:aws:dynamodb:eu-central-1:704428061275:table/dove-auth-codes
 
   httpApi:
-    cors:
+    cors: 
       allowedOrigins:
         - http://localhost:5173
       allowedHeaders:
@@ -28,6 +28,7 @@ provider:
       allowedMethods:
         - POST
         - OPTIONS
+        - GET
 
 functions:
   api:
@@ -37,19 +38,3 @@ functions:
           path: /{proxy+}
           method: ANY
 
-resources:
-  Resources:
-    VerificationCodes:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: VerificationCodes
-        AttributeDefinitions:
-          - AttributeName: phone
-            AttributeType: S
-        KeySchema:
-          - AttributeName: phone
-            KeyType: HASH
-        TimeToLiveSpecification:
-          AttributeName: expiresAt
-          Enabled: true
-        BillingMode: PAY_PER_REQUEST

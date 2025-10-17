@@ -3,6 +3,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function AuthPage() {
+    const [target, setTarget] = useState('');
+    const [targetType, setTargetType] = useState('');
     const [phone, setPhone] = useState('');
     const [code, setCode] = useState('');
     const [step, setStep] = useState('input');
@@ -28,6 +30,22 @@ function AuthPage() {
         localStorage.setItem('doveTheme', darkMode ? 'dark' : 'light');
     }, [darkMode]);
 
+    const phoneRegex = /^\+?[1-9]\d{7,14}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    useEffect(() => {
+        if (target) {
+            localStorage.setItem('doveTarget', target);
+
+            if (phoneRegex.test(target)) {
+                setTargetType('sms');
+            } else if (emailRegex.test(target)) {
+                setTargetType('email');
+            } else {
+                setTargetType('');
+            }
+        }
+    }, [target]);
 
     //Neuen Code anfragen
     useEffect(() => {
@@ -65,15 +83,15 @@ function AuthPage() {
     // lokale speicherung der Nummer
 
     useEffect(() => {
-        if (phone) {
-            localStorage.setItem('dovePhone', phone);
+        if (target) {
+            localStorage.setItem('doveTarget', target);
         }
-    }, [phone]);
+    }, [target]);
 
     useEffect(() => {
-        const savedPhone = localStorage.getItem('dovePhone');
-        if (savedPhone) {
-            setPhone(savedPhone);
+        const savedTarget = localStorage.getItem('doveTarget');
+        if (savedTarget) {
+            setTarget(savedTarget);
         }
     }, []);
 
@@ -82,18 +100,21 @@ function AuthPage() {
 
     // 📤 Code senden
     const sendCode = async () => {
-        if (!phone || phone.trim() === '') {
-            setMessage('Telefonnummer darf nicht leer sein');
+        if (!target || target.trim() === '') {
+            setMessage('Feld darf nicht leer sein');
             return;
         }
-        if (!/^\+?[1-9]\d{7,14}$/.test(phone)) {
+        if (!phoneRegex.test(target) && !emailRegex.test(target)) {
+            setMessage('Ungültiges Format. Bitte gib eine gültige Telefonnummer oder E-Mail-Adresse ein.');
             return;
         }
+
+
         setLoading(true);
         try {
-            const res = await axios.post(`${apiUrl}/send-code`, { phone });
+            const res = await axios.post(`${apiUrl}/send-code`, { target, type: targetType });
 
-            const { code, expiresIn } = res.data;
+            const { target: responseTarget, expiresIn } = res.data;
 
             setMessage(`Code gesendet 🕊️`);
             setStep('verify');
@@ -117,7 +138,7 @@ function AuthPage() {
         }
         setLoading(true);
         try {
-            const res = await axios.post(`${apiUrl}/verify-code`, { phone, code });
+            const res = await axios.post(`${apiUrl}/verify-code`, { target, code, type: targetType });
 
             const { valid, reason, expiresIn } = res.data;
 
@@ -130,9 +151,10 @@ function AuthPage() {
 
             }
         } catch (err) {
-            console.error('❌ Fehler bei der Überprüfung:', err.response?.data || err.message);
-            setMessage('Fehler bei der Überprüfung des Codes');
-        } finally {
+            console.error("❌ Fehler bei der Überprüfung:", err.response?.data || err.message);
+            setMessage(err.response?.data?.message || 'Fehler bei der Code-Verifizierung');
+        }
+        finally {
             setLoading(false);
         }
     };
@@ -167,20 +189,16 @@ function AuthPage() {
                 <>
                     <input
                         type="text"
-                        placeholder="Telefonnummer"
-                        value={phone}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setPhone(value);
-                            setPhoneValid(/^\+?[1-9]\d{7,14}$/.test(value));
-                        }}
-
+                        placeholder="Telefonnummer oder Email"
+                        value={target}
+                        onChange={(e) => setTarget(e.target.value)}
                         style={{
-                            border: phoneValid ? '1px solid #ccc' : '1px solid red'
-                        }} />
-                    {!phoneValid && (
+                            border: targetType ? '1px solid #ccc' : '1px solid red'
+                        }}
+                    />
+                    {!targetType && (
                         <p style={{ color: 'red', fontSize: '0.9em' }}>
-                            Ungültiges Format. Beispiel: +491234567890
+                            Ungültiges Format. Beispiel: +491234567890 oder janedoe@example.com
                         </p>
                     )}
 
@@ -196,7 +214,7 @@ function AuthPage() {
                     <button onClick={verifyCode}>Code prüfen</button>
                 </>
             )}
-            {countdown > 0 && countdown <= 60 && (
+            {countdown > 0 && countdown <= 130 && (
                 <div className="dove-animation"
                     style={{
                         opacity: countdown / expiresIn,
