@@ -1,66 +1,78 @@
 import express from 'express';
+import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { generateCode } from '../utils/generateCode.js';
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 dotenv.config();
 const router = express.Router();
+
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
+const sns = new SNSClient({ region: process.env.AWS_REGION });
+const ses = new SESClient({ region: process.env.AWS_REGION });
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
-// ✅ NEU: Transporter-Verifizierung zur Diagnose
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('❌ Transporter nicht bereit:', {
-            message: error.message,
-            code: error.code,
-            stack: error.stack
-        });
-    } else {
-        console.log('✅ Transporter bereit:', success);
-    }
-});
-
-// ✅ Vorab-Validierung des Typs
 const validTypes = ['sms', 'email'];
-
 const phoneRegex = /^\+?[1-9]\d{7,14}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-async function sendSMS(phone, code) {
-    console.log('Sende SMS an:', phone);
-    // SNS VERSAND EINBAUEN
-}
+async function sendSMS(target, code) {
+    console.log('📲 Sende SMS an:', target);
 
-async function sendEmail(email, code) {
-    const mailOptions = {
-        from: `"DOVE Auth" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: '🕊️ Dein DOVE-Code',
-        text: `Dein Verifizierungscode lautet: ${code}`,
-        html: `<p>🕊️ Dein DOVE-Code lautet: <strong>${code}</strong></p>`
+    const message = `🕊️ Dein DOVE-Code lautet: ${code}`;
+    const params = {
+        Message: message,
+        PhoneNumber: target,
+        MessageAttributes: {
+            'AWS.SNS.SMS.SMSType': {
+                DataType: 'String',
+                StringValue: 'Transactional'
+            }
+        }
     };
 
     try {
-        const result = await transporter.sendMail(mailOptions);
-        console.log('📧 E-Mail versendet:', result.response);
+        const result = await sns.send(new PublishCommand(params));
+        console.log('✅ SMS versendet:', result.MessageId);
         return true;
     } catch (err) {
-        // ✅ NEU: Erweiterte Fehlerausgabe für nodemailer
-        console.error('❌ Fehler beim E-Mail-Versand:', {
+        console.error('❌ Fehler beim SMS-Versand:', {
             name: err.name,
             message: err.message,
             code: err.code,
-            response: err.response,
+            stack: err.stack
+        });
+        throw err;
+    }
+}
+
+async function sendEmail(target, code) {
+    console.log("📧 SES-Absenderadresse:", process.env.EMAIL_USER);
+
+    console.log('📧 Sende E-Mail an:', target);
+
+    const params = {
+        Destination: { ToAddresses: [target] },
+        Message: {
+            Subject: { Data: "🕊️ Dein DOVE-Code" },
+            Body: {
+                Html: { Data: `<p>🕊️ Dein DOVE-Code lautet: <strong>${code}</strong></p>` },
+                Text: { Data: `🕊️ Dein DOVE-Code lautet: ${code}` }
+            }
+        },
+        Source: process.env.EMAIL_USER
+    };
+
+    try {
+        const result = await ses.send(new SendEmailCommand(params));
+        console.log("✅ E-Mail versendet:", result.MessageId);
+        return true;
+    } catch (err) {
+        console.error("❌ SES-Versandfehler:", {
+            name: err.name,
+            message: err.message,
+            code: err.code,
             stack: err.stack
         });
         throw err;
@@ -72,7 +84,6 @@ router.post('/send-code', async (req, res) => {
 
     const { target, type } = req.body;
 
-    // ✅ Typ vorab validieren
     if (!validTypes.includes(type)) {
         return res.status(400).json({ error: 'Ungültiger Typ' });
     }
@@ -82,11 +93,9 @@ router.post('/send-code', async (req, res) => {
     }
 
     const code = generateCode();
-     const expiresIn = type === 'sms' ? 45 : 130;
-     const expiresAt = Math.floor(Date.now() / 1000) + expiresIn;
-   
+    const expiresIn = type === 'sms' ? 45 : 130;
+    const expiresAt = Math.floor(Date.now() / 1000) + expiresIn;
 
-    // ✅ Konsolidiertes Logging
     console.log('📦 Anfrage verarbeitet:', {
         target,
         type,
@@ -97,7 +106,7 @@ router.post('/send-code', async (req, res) => {
 
     try {
         if (type === 'sms') {
-            // await sendSMS(target, code);
+            await sendSMS(target, code);
         } else if (type === 'email') {
             await sendEmail(target, code);
         }
@@ -109,7 +118,6 @@ router.post('/send-code', async (req, res) => {
             expiresAt
         };
 
-        // ✅ Nur bei SMS das Feld `phone` ergänzen
         if (type === 'sms') {
             item.phone = target;
         }
@@ -119,11 +127,9 @@ router.post('/send-code', async (req, res) => {
             Item: item
         }));
 
-
         console.log('✅ Code gespeichert');
         res.json({ success: true, code, expiresIn });
     } catch (err) {
-        // ✅ Fehlerausgabe bleibt vollständig
         console.error('❌ Fehler beim Speichern/Versand:', err);
 
         res.status(500).json({
@@ -134,7 +140,6 @@ router.post('/send-code', async (req, res) => {
             name: err.name,
             type: err.__type
         });
-
     }
 });
 

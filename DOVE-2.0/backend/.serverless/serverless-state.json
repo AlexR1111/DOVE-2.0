@@ -19,9 +19,15 @@
           "Action": [
             "dynamodb:PutItem",
             "dynamodb:GetItem",
-            "dynamodb:DeleteItem"
+            "dynamodb:DeleteItem",
+            "sns:Publish",
+            "ses:SendEmail"
           ],
-          "Resource": "arn:aws:dynamodb:eu-central-1:704428061275:table/dove-auth-codes"
+          "Resource": [
+            "arn:aws:dynamodb:eu-central-1:704428061275:table/dove-auth-codes",
+            "arn:aws:ses:eu-central-1:704428061275:identity/dove.no.reply@gmail.com",
+            "*"
+          ]
         }
       ],
       "httpApi": {
@@ -139,7 +145,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "dove-serverless-deploy",
-                "S3Key": "serverless/dove-auth/prod/1760693565773-2025-10-17T09:32:45.773Z/dove-auth.zip"
+                "S3Key": "serverless/dove-auth/prod/1760951295822-2025-10-20T09:08:15.822Z/dove-auth.zip"
               },
               "Handler": "handler.handler",
               "Runtime": "nodejs18.x",
@@ -162,14 +168,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionkjESfox1Cflh2jfnq88yqCq0O78fnC9lpN47TRtkTK8": {
+          "ApiLambdaVersionUMvsShjIX4VoEZzAAfC2qpA41JaReG026FTGeZTFKo": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "c8bEt6HmsLkgJLuYj/7CFAxmPaEtmLWwlb6GJXt4vYY="
+              "CodeSha256": "783XE9KpknJ94asHIobtaYvbnkOmMYp/eO6j5v1SM98="
             }
           },
           "HttpApi": {
@@ -288,7 +294,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionkjESfox1Cflh2jfnq88yqCq0O78fnC9lpN47TRtkTK8"
+              "Ref": "ApiLambdaVersionUMvsShjIX4VoEZzAAfC2qpA41JaReG026FTGeZTFKo"
             },
             "Export": {
               "Name": "sls-dove-auth-prod-ApiLambdaFunctionQualifiedArn"
@@ -352,13 +358,14 @@
         "timeout": 6,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionkjESfox1Cflh2jfnq88yqCq0O78fnC9lpN47TRtkTK8"
+        "versionLogicalId": "ApiLambdaVersionUMvsShjIX4VoEZzAAfC2qpA41JaReG026FTGeZTFKo"
       }
     },
     "configValidationMode": "warn",
-    "serviceFilename": "serverless",
+    "serviceFilename": "serverless.yml",
     "initialServerlessConfig": {
       "service": "dove-auth",
+      "useDotenv": true,
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
@@ -366,13 +373,12 @@
         "$ref": "$[\"service\"][\"functions\"]"
       }
     },
-    "appId": null,
-    "orgId": null,
     "layers": {},
+    "isDashboardMonitoringPreconfigured": false,
     "artifact": "C:\\DOVE\\DOVE-2.0\\backend\\.serverless\\dove-auth.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/dove-auth/prod/1760693565773-2025-10-17T09:32:45.773Z",
+    "artifactDirectoryName": "serverless/dove-auth/prod/1760951295822-2025-10-20T09:08:15.822Z",
     "artifact": "dove-auth.zip"
   }
 }

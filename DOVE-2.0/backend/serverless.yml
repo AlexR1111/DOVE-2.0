@@ -1,5 +1,7 @@
 service: dove-auth
 
+useDotenv: true
+
 provider:
   name: aws
   runtime: nodejs18.x
@@ -16,8 +18,13 @@ provider:
         - dynamodb:PutItem
         - dynamodb:GetItem
         - dynamodb:DeleteItem
+        - sns:Publish
+        - ses:SendEmail
       Resource:
         - arn:aws:dynamodb:eu-central-1:704428061275:table/dove-auth-codes
+        - arn:aws:ses:eu-central-1:704428061275:identity/dove.no.reply@gmail.com
+        - "*"
+       
 
   httpApi:
     cors: 
